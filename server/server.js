@@ -6,7 +6,9 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
-
+const organizationRoutes = require('./routes/organizations');
+const inviteRoutes = require('./routes/invites');
+const organizationsettingsRoutes=require("./routes/organization-settings")
 const app = express();
 
 // Middleware
@@ -23,10 +25,14 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
+//static routes
+app.use('/uploads',express.static('uploads'));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/organizations', organizationRoutes);
+app.use('/api/organization-settings',organizationsettingsRoutes)
+app.use('/api/invites', inviteRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

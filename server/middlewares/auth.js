@@ -98,12 +98,14 @@ const requireSuperAdmin = authorize('superadmin');
 const requireAdmin = authorize('superadmin', 'admin');
 const requireHR = authorize('superadmin', 'admin', 'hr');
 const requireEmployee = authorize('superadmin', 'admin', 'hr', 'employee');
-
+const requireAdminOrHR=authorize('admin','hr');
 module.exports = {
     protect,
     authorize,
     requireSuperAdmin,
     requireAdmin,
     requireHR,
-    requireEmployee
+    requireEmployee,
+    requireAdminOrHR
+
 };

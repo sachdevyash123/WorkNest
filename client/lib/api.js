@@ -12,11 +12,11 @@ const api = axios.create({
 // Request interceptor to add auth token from localStorage if needed
 api.interceptors.request.use(
     (config) => {
-        // For cases where we need to send token in headers (fallback)
+        // Always try to get token from localStorage and add to headers
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
-        }
+        } 
         return config;
     },
     (error) => {
@@ -66,6 +66,15 @@ export const authAPI = {
 
 // User API functions
 export const userAPI = {
+    // Get current user profile
+    getProfile: () => api.get('/users/profile/me'),
+
+    // Update current user profile
+    updateProfile: (profileData) => api.patch('/users/profile/me', profileData),
+
+    // Join organization
+    joinOrganization: (organizationId, role) => api.post('/users/profile/join-organization', { organizationId, role }),
+
     // Get all users (admin/superadmin only)
     getAllUsers: () => api.get('/users'),
 

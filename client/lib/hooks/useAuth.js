@@ -198,6 +198,20 @@ export const AuthProvider = ({ children }) => {
 
     // Check if user is superadmin
     const isSuperAdmin = () => hasRole('superadmin');
+    //check if user is admin or hr
+    const isAdminOrHR=()=>hasAnyRole(['admin','hr']);
+    //check if user is hr
+    const isHR=()=>hasRole('hr');
+    //check if user is Employee
+    const isEmployee=()=>hasRole('employee');
+
+    // Update user data in context and localStorage
+    const updateUser = (updatedUserData) => {
+        setUser(updatedUserData);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('user', JSON.stringify(updatedUserData));
+        }
+    };
 
     const value = {
         user,
@@ -211,8 +225,12 @@ export const AuthProvider = ({ children }) => {
         hasRole,
         hasAnyRole,
         isAdmin,
+        isAdminOrHR,
+        isHR,
+        isEmployee,
         isSuperAdmin,
-        checkAuth
+        checkAuth,
+        updateUser
     };
 
     return (

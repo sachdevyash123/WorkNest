@@ -45,7 +45,7 @@ const clearTokenCookie = (res) => {
 // @access  Public
 const register = async (req, res) => {
     try {
-        const { fullName, email, password } = req.body;
+        const { fullName, email, password, organization, role, inviteToken } = req.body;
 
         // Check if user already exists
         const existingUser = await User.findByEmail(email);
@@ -56,12 +56,73 @@ const register = async (req, res) => {
             });
         }
 
-        // Create new user (role defaults to 'employee')
-        const user = await User.create({
+        // If this is an organization signup, validate the invite
+        if (organization && inviteToken) {
+            // Import Invite model here to avoid circular dependency
+            const Invite = require('../models/Invite');
+
+            const invite = await Invite.findValidByToken(inviteToken);
+            if (!invite) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid or expired invitation'
+                });
+            }
+
+            if (invite.email !== email) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email does not match invitation'
+                });
+            }
+
+            if (invite.organization.toString() !== organization) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Organization does not match invitation'
+                });
+            }
+
+            // Mark invite as accepted
+            invite.markAccepted(null); // Will be updated with user ID after user creation
+            await invite.save();
+        }
+
+        // Create new user
+        const userData = {
             fullName,
             email,
             password
-        });
+        };
+
+        // Add organization and role if provided (for organization signups)
+        if (organization && inviteToken) {
+            userData.organization = organization;
+            if (role) {
+                userData.role = role;
+            }
+        } else {
+            // For regular signups, set default role and no organization
+            userData.role = 'employee';
+            userData.organization = null;
+        }
+
+        const user = await User.create(userData);
+
+        // Update invite with user ID if this was an organization signup
+        if (organization && inviteToken) {
+            const Invite = require('../models/Invite');
+            await Invite.findOneAndUpdate(
+                { token: inviteToken },
+                { acceptedBy: user._id }
+            );
+        }
+
+        // For regular signups, we could create a default organization or leave as null
+        // This allows users to join organizations later through invitations
+        if (!organization && !inviteToken) {
+            console.log(`User ${user.email} signed up without organization. They can join one later.`);
+        }
 
         // Generate token
         const token = generateToken(user._id);
