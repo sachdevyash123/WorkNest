@@ -14,6 +14,11 @@ export function middleware(request: NextRequest) {
     const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
+    // Allow invite routes to proceed without authentication
+    if (pathname.startsWith("/invite")) {
+        return NextResponse.next();
+    }
+    
     // If user is not authenticated and trying to access protected route
     if (!isValidToken && !isPublicRoute && pathname !== '/') {
         return NextResponse.redirect(new URL('/login', request.url));
@@ -23,6 +28,7 @@ export function middleware(request: NextRequest) {
     if (isValidToken && isPublicRoute) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
+   
 
     return NextResponse.next();
 }
